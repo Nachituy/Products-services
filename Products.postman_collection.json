@@ -1,0 +1,47 @@
+{
+	"info": {
+		"_postman_id": "b072b113-aa22-4949-8916-4d126f3e3d1c",
+		"name": "Products",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27150075"
+	},
+	"item": [
+		{
+			"name": "Obtener productos",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "products:8080/products",
+					"host": [
+						"products"
+					],
+					"port": "8080",
+					"path": [
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Obtener un producto",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "products:8080/products/123",
+					"host": [
+						"products"
+					],
+					"port": "8080",
+					"path": [
+						"products",
+						"123"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

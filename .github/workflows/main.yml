@@ -1,24 +1,17 @@
 name: Deploy to ECR
 
 on:
- 
+
   push:
     branches: [ main ]
 
-   
-
 jobs:
-  
-  build:
-    
+   build:
     name: Build Image
     runs-on: ubuntu-latest
-
-   
     steps:
-
     - name: Check out code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -27,7 +20,7 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-session-token: ${{ secrets.AWS_SESSION_TOKEN}}
         aws-region: us-east-1
-
+        
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
@@ -40,3 +33,98 @@ jobs:
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        
+    - name: Cached   
+      uses: actions/cache@v2
+      id: config 
+      with:
+          path: ./kubernetes
+          key: ${{ github.sha }}-config    
+        
+        
+      
+   deploy:
+    name: Deploy Image EKS
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+        - name: Configure AWS credentials
+          uses: aws-actions/configure-aws-credentials@v1
+          with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+            aws-region: us-east-1
+        
+        - name: Login to Amazon ECR
+          id: login-ecr
+          uses: aws-actions/amazon-ecr-login@v1
+   
+        - name: Cached     
+          uses: actions/cache@v2
+          id: config
+          with:
+           path: ./kubernetes
+           key: ${{ github.sha }}-config    
+                       
+        - name: working with Kubernetes 
+          run: |
+             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip
+             unzip -q /tmp/awscliv2.zip -d /tmp
+             rm /tmp/awscliv2.zip
+             sudo /tmp/aws/install --update
+             rm -rf /tmp/aws/ 
+             aws eks update-kubeconfig --region us-east-1 --name ${{ vars.CLUSTER_NAME}}
+             sudo apt-get update
+             sudo apt-get install -y ca-certificates curl
+             curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
+             echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+             sudo apt-get update
+             sudo apt-get install -y kubectl
+             kubectl apply -f kubernetes/pod.yml  -f kubernetes/services.yml -f kubernetes/networking.yml  
+          env:
+             KUBE_CONFIG_DATA: $KUBE_CONFIG
+             ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+             ECR_REPOSITORY: obligatorio
+             IMAGE_TAG: products_image
+             RELEASE_IMAGE: 201748105803.dkr.ecr.us-east-1.amazonaws.com/obligatorio:productsproducts_image
+        
+        - name: Check Rolling Update
+          run:  kubectl set image deployments/products shipping=$RELEASE_IMAGE
+          env:
+            RELEASE_IMAGE: 201748105803.dkr.ecr.us-east-1.amazonaws.com/obligatorio:products_image 
+            
+        - name: Get Cluster Public IP
+          run: kubectl get services --all-namespaces -o wide
+    
+            
+         
+   test:
+      needs: deploy
+      runs-on: ubuntu-latest
+      steps:
+        - name: Check out Git repositor
+          uses: actions/checkout@v3  
+        - name: Create Dir
+          run: |
+              mkdir Tests
+      
+        - name: Install
+          uses: actions/setup-node@v3
+          with:
+            node-version: '16.x' 
+            
+        - name: Install Newman
+          run: | 
+              npm install -g newman
+              npm install -g newman-reporter-htmlextra
+          
+        - name: Run Test     
+          run : newman run "Products.postman_collection.json" -r cli,htmlextra --reporter-htmlextra-export Tests/htmlreport.html
+       
+        - name:  Reporte
+          uses: actions/upload-artifact@v3
+          with:
+            name: Reports
+            path: Tests   
