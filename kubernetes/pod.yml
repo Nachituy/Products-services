@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ordenes-deployment
+  name: products-deployment
   labels:
-    app: ms-payments
+    app: products
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: app-ordenes
+      app: products
   template:
     metadata:
       labels:
-        app: app-ordenes
+        app: products
     spec:
       containers:
         - name: ordenes
-          image: 612686574181.dkr.ecr.us-east-1.amazonaws.com/obligatorio:orders_image
-          
+          image: 201748105803.dkr.ecr.us-east-1.amazonaws.com/obligatorio:orders_image
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           readinessProbe:
