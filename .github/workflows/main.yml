@@ -70,25 +70,25 @@ jobs:
                        
         - name: working with Kubernetes 
           run: |
-             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip
-             unzip -q /tmp/awscliv2.zip -d /tmp
-             rm /tmp/awscliv2.zip
-             sudo /tmp/aws/install --update
-             rm -rf /tmp/aws/ 
+             #curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip
+             #unzip -q /tmp/awscliv2.zip -d /tmp
+             #rm /tmp/awscliv2.zip
+             #sudo /tmp/aws/install --update
+             #rm -rf /tmp/aws/ 
              aws eks update-kubeconfig --region us-east-1 --name ${{ vars.CLUSTER_NAME}}
-             sudo apt-get update
-             sudo apt-get install -y ca-certificates curl
-             curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
-             echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
-             sudo apt-get update
-             sudo apt-get install -y kubectl
+             #sudo apt-get update
+             #sudo apt-get install -y ca-certificates curl
+             #curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
+             #echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+             #sudo apt-get update
+             #sudo apt-get install -y kubectl
              kubectl apply -f kubernetes/pod.yml  -f kubernetes/services.yml -f kubernetes/networking.yml  
-          env:
-             KUBE_CONFIG_DATA: $KUBE_CONFIG
-             ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-             ECR_REPOSITORY: obligatorio
-             IMAGE_TAG: products_image
-             RELEASE_IMAGE: 201748105803.dkr.ecr.us-east-1.amazonaws.com/obligatorio:productsproducts_image
+          #env:
+           #  KUBE_CONFIG_DATA: $KUBE_CONFIG
+           #  ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+           #  ECR_REPOSITORY: obligatorio
+           #  IMAGE_TAG: products_image
+           #  RELEASE_IMAGE: 201748105803.dkr.ecr.us-east-1.amazonaws.com/obligatorio:productsproducts_image
         
         - name: Check Rolling Update
           run:  kubectl set image deployments/products shipping=$RELEASE_IMAGE
