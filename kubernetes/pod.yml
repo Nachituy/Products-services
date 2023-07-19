@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ordenes-deployment
+  labels:
+    app: ms-payments
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-ordenes
+  template:
+    metadata:
+      labels:
+        app: app-ordenes
+    spec:
+      containers:
+        - name: ordenes
+          image: 612686574181.dkr.ecr.us-east-1.amazonaws.com/obligatorio:orders_image
+          
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+
