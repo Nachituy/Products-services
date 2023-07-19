@@ -88,7 +88,7 @@ jobs:
              ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
              ECR_REPOSITORY: obligatorio
              IMAGE_TAG: products_image
-             RELEASE_IMAGE: 201748105803.dkr.ecr.us-east-1.amazonaws.com/obligatorio:productsproducts_image
+             RELEASE_IMAGE: 201748105803.dkr.ecr.us-east-1.amazonaws.com/obligatorio:products_image
         
         - name: Check Rolling Update
           run:  kubectl set image deployments/products shipping=$RELEASE_IMAGE
